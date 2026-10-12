@@ -93,6 +93,26 @@ figcaption{font-size:.88rem;color:var(--muted);margin-top:6px}
 .steps li{counter-increment:s;display:flex;gap:14px;padding:10px 0}
 .steps li::before{content:counter(s);flex:none;width:28px;height:28px;border-radius:50%;background:var(--ink);color:var(--surface);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:.9rem;margin-top:1px}
 
+.q{border:0;margin:0;padding:14px 4px;border-bottom:1px solid var(--line);min-width:0}
+.q legend{font-weight:600;padding:0;float:left;width:100%;margin-bottom:10px}
+.yn{clear:both;display:flex;gap:10px}
+.yn-opt{position:relative;cursor:pointer}
+.yn-opt input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.yn-opt span{display:inline-flex;align-items:center;justify-content:center;min-width:96px;padding:10px 22px;border:2px solid var(--line);border-radius:12px;font-weight:600;background:var(--bg);transition:background .15s,color .15s,border-color .15s}
+.yn-opt input:checked + span{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.yn-opt input:focus-visible + span{outline:3px solid var(--done);outline-offset:2px}
+.cmt-label{display:block;font-weight:600;margin:18px 4px 8px}
+.cmt{display:block;width:100%;min-height:96px;resize:vertical;font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:12px}
+.cmt:focus-visible{outline:3px solid var(--done);outline-offset:2px;border-color:var(--done)}
+.addr{display:flex;align-items:center;gap:14px;text-decoration:none;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:0 0 16px}
+.addr:focus-visible{outline:3px solid var(--done);outline-offset:2px}
+.addr-ico{flex:none;width:44px;height:44px;border-radius:50%;background:var(--done);color:#fff;display:flex;align-items:center;justify-content:center}
+.addr-ico svg{width:24px;height:24px}
+.addr-txt{min-width:0}
+.addr-txt strong{display:block;font-weight:600}
+.addr-txt small{display:block;color:var(--done);font-weight:600;margin-top:2px}
+:root[data-theme="dark"] .addr-ico{color:#0F1A1F}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .addr-ico{color:#0F1A1F}}
 .soon{color:var(--muted);margin:0;font-style:italic}
 .where{background:var(--bg);border-radius:12px;padding:14px 16px;margin:0 0 16px}
 .where .sub{margin:0 0 8px}
@@ -166,9 +186,11 @@ var DATA = [
   {
     id:'adgang', title:'Adgang til lejligheden',
     blocks:[
+      {type:'addr', text:'Edouard Suensons Gade 6, 4.M, 8200 Aarhus N', url:'https://maps.app.goo.gl/TRcgyJWaGBVvAv3e9'},
       {type:'note', html:'Koden til nøgleboksen får du i en besked fra mig.'},
       {type:'photo', caption:'Lejligheden ligger på Edouard Suensons Gade 6, 4.M, 8200 Aarhus N. Nøgleboksen sidder på væggen til venstre for døren.', img:IMG_DOOR},
       {type:'steps', items:[
+        'Kommer du i bil og skal bruge parkering? Skriv nummerpladen til Malthe, så kan han registrere din bil.',
         'Gå op til 4. sal. Lejligheden er <strong>4.M</strong> på <strong>Edouard Suensons Gade 6, 8200 Aarhus N</strong>.',
         'Find nøgleboksen på væggen til <strong>venstre for døren</strong> (se billedet).',
         'Indtast koden fra min besked, og tryk på <strong>TJEK-symbolet</strong>. Boksen kan nu åbnes.',
@@ -176,6 +198,16 @@ var DATA = [
         'Lås døren op med nøglen.'
       ]},
       {type:'photo', caption:'Nøgleboksen åben. Nøglen hænger på krogen indeni.', img:IMG_KEYBOX}
+    ]
+  },
+  {
+    id:'gennemgang', title:'Gennemgang af lejligheden',
+    blocks:[
+      {type:'ask', comment:'Andet', items:[
+        ['Er lejligheden efterladt pæn og tilnærmelsesvis ren?','nej'],
+        ['Er der glemt nogle genstande i lejligheden?','ja'],
+        ['Er der noget beskadiget i lejligheden?','ja']
+      ]}
     ]
   },
   {
@@ -301,7 +333,8 @@ function isSent(){ return !!state.__sent; }
 var sectionsEl = document.getElementById('sections');
 var navEl = document.getElementById('nav');
 var counters = [];
-var allBoxes = [];
+var allItems = [];
+var reviews = [];
 
 function el(tag, cls, html){
   var e = document.createElement(tag);
@@ -332,6 +365,11 @@ DATA.forEach(function(sec){
       f.appendChild(p);
       f.appendChild(el('figcaption',null,b.caption));
       body.appendChild(f);
+    } else if(b.type === 'addr'){
+      var ad = el('a','addr');
+      ad.href = b.url; ad.target = '_blank'; ad.rel = 'noopener';
+      ad.innerHTML = '<span class="addr-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span><span class="addr-txt"><strong>' + b.text + '</strong><small>Åbn i Google Maps</small></span>';
+      body.appendChild(ad);
     } else if(b.type === 'soon'){
       body.appendChild(el('p','soon','Denne del er under opbygning.'));
     } else if(b.type === 'info'){
@@ -346,6 +384,42 @@ DATA.forEach(function(sec){
       var ol = el('ol','steps');
       b.items.forEach(function(t){ ol.appendChild(el('li',null,'<span>'+t+'</span>')); });
       body.appendChild(ol);
+    } else if(b.type === 'ask'){
+      var rv = {title:sec.title, qs:[], ckey:'c:' + sec.id, clabel:b.comment || 'Andet'};
+      reviews.push(rv);
+      var qwrap = el('div','ask');
+      b.items.forEach(function(q, qi){
+        var qkey = 'q:' + sec.id + ':' + qi;
+        var fs = el('fieldset','q');
+        fs.appendChild(el('legend',null,q[0]));
+        var row = el('div','yn');
+        [['ja','Ja'],['nej','Nej']].forEach(function(o){
+          var lab = el('label','yn-opt');
+          var r = document.createElement('input');
+          r.type = 'radio'; r.name = qkey; r.value = o[0]; r.checked = (state[qkey] === o[0]);
+          r.addEventListener('change', function(){
+            state[qkey] = o[0];
+            if(!state.__start) state.__start = Date.now();
+            save(); update();
+          });
+          lab.appendChild(r); lab.appendChild(el('span',null,o[1])); row.appendChild(lab);
+        });
+        fs.appendChild(row); qwrap.appendChild(fs);
+        var qi2 = {done:function(){ return !!state[qkey]; }, label:sec.title + ': ' + q[0]};
+        boxes.push(qi2); allItems.push(qi2);
+        rv.qs.push({key:qkey, text:q[0], problem:q[1]});
+      });
+      var cid = 'cmt-' + sec.id;
+      var cl = el('label','cmt-label', rv.clabel); cl.setAttribute('for', cid);
+      var ta = document.createElement('textarea');
+      ta.id = cid; ta.className = 'cmt'; ta.maxLength = 1500; ta.value = state[rv.ckey] || '';
+      ta.addEventListener('input', function(){
+        if(ta.value) state[rv.ckey] = ta.value; else delete state[rv.ckey];
+        if(!state.__start) state.__start = Date.now();
+        save();
+      });
+      qwrap.appendChild(cl); qwrap.appendChild(ta);
+      body.appendChild(qwrap);
     } else if(b.type === 'check'){
       var ul = el('ul','list');
       b.items.forEach(function(it){
@@ -362,7 +436,7 @@ DATA.forEach(function(sec){
         var txt = el('span','txt','<strong>'+it[0]+'</strong>'+(it[1] ? '<small>'+it[1]+'</small>' : ''));
         lab.appendChild(inp); lab.appendChild(box); lab.appendChild(txt);
         li.appendChild(lab); ul.appendChild(li);
-        boxes.push(inp); allBoxes.push(inp);
+        var itm = {done:function(){return inp.checked}, label:sec.title + ': ' + it[0].replace(/<[^>]+>/g,'')}; boxes.push(itm); allItems.push(itm);
       });
       body.appendChild(ul);
     }
@@ -379,7 +453,7 @@ DATA.forEach(function(sec){
 function update(){
   var done = 0;
   counters.forEach(function(c){
-    var d = c.boxes.filter(function(b){return b.checked}).length;
+    var d = c.boxes.filter(function(b){return b.done()}).length;
     done += d;
     c.prog.textContent = d + ' / ' + c.boxes.length;
     c.prog.style.display = c.boxes.length ? '' : 'none';
@@ -387,7 +461,7 @@ function update(){
     c.prog.classList.toggle('complete', full);
     c.nav.classList.toggle('complete', full);
   });
-  var total = allBoxes.length;
+  var total = allItems.length;
   document.getElementById('totalCount').textContent = done + ' / ' + total;
   document.getElementById('totalFill').style.width = (total ? done/total*100 : 0) + '%';
   refreshFinish();
@@ -408,21 +482,41 @@ function refreshFinish(){
   }
 }
 
+function buildReview(){
+  var out = [], flag = false;
+  reviews.forEach(function(rv){
+    out.push(rv.title.toUpperCase() + ':');
+    rv.qs.forEach(function(q){
+      var a = state[q.key];
+      var txt = a === 'ja' ? 'Ja' : a === 'nej' ? 'Nej' : '(ikke besvaret)';
+      var prob = !!a && a === q.problem;
+      if(prob) flag = true;
+      out.push('- ' + q.text + ' ' + txt + (prob ? '   <-- OBS' : ''));
+    });
+    var c = (state[rv.ckey] || '').trim();
+    out.push(rv.clabel + ': ' + (c || '(ingen kommentar)'));
+    if(c) flag = true;
+  });
+  return {text: out.join('\n'), flag: flag};
+}
+
 finishBtn.addEventListener('click', function(){
   if(isSent()) return;
-  var total = allBoxes.length;
-  var open = allBoxes.filter(function(b){return !b.checked}).map(function(b){return b.getAttribute('data-label')});
+  var total = allItems.length;
+  var open = allItems.filter(function(b){return !b.done()}).map(function(b){return b.label});
   var done = total - open.length;
-  if(open.length && !confirm('Der er ' + open.length + ' punkt' + (open.length === 1 ? '' : 'er') + ' uden flueben. Vil du melde færdig alligevel?')) return;
+  if(open.length && !confirm('Der er ' + open.length + ' punkt' + (open.length === 1 ? '' : 'er') + ' uden svar eller flueben. Vil du melde færdig alligevel?')) return;
   if(!NOTIFY_KEY){ setStatus('Mailen er ikke sat op endnu. Skriv til Malthe, at du er færdig.', 'err'); return; }
   var now = new Date().toLocaleString('da-DK',{dateStyle:'full',timeStyle:'short'});
-  var msg = 'Rengøringen er meldt færdig ' + now + '.\n' + done + ' af ' + total + ' punkter har flueben.';
-  if(open.length) msg += '\n\nUden flueben:\n- ' + open.join('\n- ');
+  var rev = buildReview();
+  var msg = 'Rengøringen er meldt færdig ' + now + '.\n\n' + rev.text + '\n\n' + done + ' af ' + total + ' punkter er udfyldt.';
+  if(open.length) msg += '\n\nIkke udfyldt:\n- ' + open.join('\n- ');
+  var subject = NOTIFY_SUBJECT + (rev.flag ? ' (OBS: se bemærkninger)' : '');
   finishBtn.disabled = true; setStatus('Sender...', '');
   fetch('https://api.web3forms.com/submit',{
     method:'POST',
     headers:{'Content-Type':'application/json','Accept':'application/json'},
-    body:JSON.stringify({access_key:NOTIFY_KEY, subject:NOTIFY_SUBJECT, from_name:NOTIFY_PRIVATE_NAME, message:msg})
+    body:JSON.stringify({access_key:NOTIFY_KEY, subject:subject, from_name:NOTIFY_PRIVATE_NAME, message:msg})
   }).then(function(r){ return r.json().then(function(j){ return {ok:r.ok && j.success !== false}; }); })
     .then(function(res){
       if(res.ok){ if(!state.__start) state.__start = Date.now(); state.__sent = 1; save(); refreshFinish(); }
@@ -430,7 +524,6 @@ finishBtn.addEventListener('click', function(){
     })
     .catch(function(){ finishBtn.disabled = false; setStatus('Det lykkedes ikke at sende. Tjek din forbindelse, og prøv igen.', 'err'); });
 });
-
 
 update();
 </script>
